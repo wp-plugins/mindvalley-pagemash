@@ -4,7 +4,7 @@ Donate link: http://www.mindvalley.com/opensource
 Tags: pagemash, page, management
 Requires at least: 3.0.0
 Tested up to: 3.1.2
-Stable tag: 1.0.1
+Stable tag: 1.0.2
 
 A forked development of the infamous PageMash plugin.
 
@@ -29,5 +29,6 @@ Hope this will help those who rely on PageMash as much as we do :)
 
 = 1.0 =
 Initial version with enhancements:
-*	Remove auto-draft, trash from view
-*	Toggle page toolbar
+
+* Remove auto-draft, trash from view
+* Toggle page toolbar
