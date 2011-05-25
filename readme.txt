@@ -27,7 +27,7 @@ Hope this will help those who rely on PageMash as much as we do :)
 
 == Changelog ==
 
-= 0.1 =
+= 1.0 =
 Initial version with enhancements:
 *	Remove auto-draft, trash from view
 *	Toggle page toolbar
