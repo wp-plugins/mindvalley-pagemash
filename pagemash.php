@@ -3,7 +3,7 @@
 Plugin Name: MindValley pageMash
 Description: Manage your multitude of pages with pageMash's slick drag-and-drop style, ajax interface. Allows quick sorting, hiding and organising of parenting. Forked from original pageMash from Joel Starnes.
 Author: MindValley
-Version: 1.0.1
+Version: 1.0.2
 	
 */
 #########CONFIG OPTIONS############################################
