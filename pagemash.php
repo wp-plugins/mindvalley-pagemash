@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name: MindValley pageMash
-Description: Manage your multitude of pages with pageMash's slick drag-and-drop style, ajax interface. Allows quick sorting, hiding and organising of parenting. Forked from original pageMash from Joel Starnes.
+Plugin Name: Mindvalley Super pageMash
+Description: Manage your multitude of pages with pageMash's slick drag-and-drop style, ajax interface. Allows quick sorting, hiding and organising of parenting. Forked from original pageMash from Joel Starnes. (Formally called MindValley pageMash)
 Author: MindValley
-Version: 1.0.2
+Version: 1.0.3
 	
 */
 #########CONFIG OPTIONS############################################

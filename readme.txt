@@ -1,21 +1,21 @@
-=== MindValley PageMash ===
+=== MindValley Super PageMash ===
 Contributors: mindvalley
 Donate link: http://www.mindvalley.com/opensource
 Tags: pagemash, page, management
 Requires at least: 3.0.0
-Tested up to: 3.1.2
-Stable tag: 1.0.2
+Tested up to: 3.1.3
+Stable tag: 1.0.3
 
 A forked development of the infamous PageMash plugin.
 
 
 == Description ==
 
-A continued development of the infamous PageMash plugin http://wordpress.org/extend/plugins/pagemash/
+If you love pageMash you will definitely love Super pageMash.
 
-We tried to contact the author but no response :/
+All the goodies from the infamous pageMash (http://wordpress.org/extend/plugins/pagemash/) and much more !!!
 
-Hope this will help those who rely on PageMash as much as we do :)
+Customize and order your pages with absolute ease.
 
 
 == Installation ==
@@ -23,6 +23,13 @@ Hope this will help those who rely on PageMash as much as we do :)
 1. Upload plugin folder to the `/wp-content/plugins/` directory
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Enjoy!
+
+
+== To Do ==
+
+l. Duplicate pages
+l. Open edit in _blank
+l. Page caching
 
 
 == Changelog ==
