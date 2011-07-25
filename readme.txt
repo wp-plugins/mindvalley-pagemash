@@ -3,8 +3,8 @@ Contributors: mindvalley
 Donate link: http://www.mindvalley.com/opensource
 Tags: pagemash, page, management
 Requires at least: 3.0.0
-Tested up to: 3.1.3
-Stable tag: 1.0.3
+Tested up to: 3.2.1
+Stable tag: 1.0.4
 
 A forked development of the infamous PageMash plugin.
 
@@ -27,8 +27,6 @@ Customize and order your pages with absolute ease.
 
 == To Do ==
 
-l. Duplicate pages
-l. Open edit in _blank
 l. Page caching
 
 
@@ -39,3 +37,7 @@ Initial version with enhancements:
 
 * Remove auto-draft, trash from view
 * Toggle page toolbar
+
+= 1.0.4 =
+
+* Page Duplicate

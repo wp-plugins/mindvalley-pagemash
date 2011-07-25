@@ -1,25 +1,29 @@
 <?php
 /*
 Plugin Name: Mindvalley Super pageMash
+Plugin URI: http://mindvalley.com/opensource
 Description: Manage your multitude of pages with pageMash's slick drag-and-drop style, ajax interface. Allows quick sorting, hiding and organising of parenting. Forked from original pageMash from Joel Starnes. (Formally called MindValley pageMash)
-Author: MindValley
-Version: 1.0.3
+Author: Mindvalley
+Version: 1.0.4
 	
 */
 #########CONFIG OPTIONS############################################
-$minlevel = 7;  /*[deafult=7]*/
+$minlevel = 7;  /*[default=7]*/
 /* Minimum user level to access page order */
 
-$excludePagesFeature = true;  /*[deafult=true]*/
+$excludePagesFeature = true;  /*[default=true]*/
 /* Allows you to set pages not to be listed */
 
-$renamePagesFeature = true;  /*[deafult=true]*/
+$renamePagesFeature = true;  /*[default=true]*/
 /* Lets you rename pages */
 
-$CollapsePagesOnLoad = false;  /*[deafult=true]*/
+$duplicatePagesFeature = true;  /*[default=true]*/
+/* Lets you duplicate pages */
+
+$CollapsePagesOnLoad = false;  /*[default=true]*/
 /* Collapse all parent pages on load */
 
-$ShowDegubInfo = false;  /*[deafult=false]*/
+$ShowDegubInfo = false;  /*[default=false]*/
 /* Show server response debug info */
 ###################################################################
 /*
@@ -63,7 +67,7 @@ load_plugin_textdomain('pmash','wp-content/plugins/mindvalley-pagemash/');
 function pageMash_getPages($post_parent){
 	//this is a recurrsive function which calls itself to produce a nested list of elements
 	//$post_parent should be 0 for root pages, or contain a pageID to return it's sub-pages
-	global $wpdb, $wp_version, $excludePagesFeature, $excludePagesList, $renamePagesFeature;
+	global $wpdb, $wp_version, $excludePagesFeature, $excludePagesList, $renamePagesFeature, $duplicatePagesFeature;
 	if($wp_version >= 2.1){ //get pages from database
 		$pageposts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = '$post_parent' AND post_status != 'auto-draft' ORDER BY menu_order");
 	}else{
@@ -76,17 +80,20 @@ function pageMash_getPages($post_parent){
 			<?php $status = $page->post_status; ?>
 			<li id="pm_<?php echo $page->ID; ?>"<?php if(get_option('exclude_pages')){ if(in_array($page->ID, $excludePagesList)) echo ' class="remove"'; }//if page is in exclude list, add class remove ?>>
 				<span class="title"><?php echo $page->post_title;?></span>
-				<?php if ($status == 'draft' || $status == 'pending') { print ' <span class="pm_status">('.__($status).')</span>'; } ?>
+				<?php if ($status == 'draft' || $status == 'pending' || $status == 'trash') { print ' <span class="pm_status">('.__($status).')</span>'; } ?>
 				<span class="pageMash_box showAll">
 					<span class="pageMash_more">&raquo;</span>
 					<span class="pageMash_pageFunctions">
 						id:<?php echo $page->ID;?>
-						[<a href="<?php echo get_bloginfo('wpurl').'/wp-admin/post.php?action=edit&post='.$page->ID; ?>" title="<?php _e('Edit This Page'); ?>"><?php _e('edit'); ?></a>]
+						[<a href="<?php echo get_bloginfo('wpurl').'/wp-admin/post.php?action=edit&post='.$page->ID; ?>" title="<?php _e('Edit This Page'); ?>" target="_blank"><?php _e('edit'); ?></a>]
 						<?php if($excludePagesFeature): ?>
 							[<a href="#" title="<?php _e('Show|Hide'); ?>" class="excludeLink" onclick="toggleRemove(this); return false"><?php _e('hide') ?></a>]
 						<?php endif; ?>
 						<?php if($renamePagesFeature): ?>
 							[<a href="#" title="<?php _e('Rename Page'); ?>" class="rename"><?php _e('Rename'); ?></a>]
+						<?php endif; ?>
+						<?php if($duplicatePagesFeature): ?>
+							[<a href="<?php echo admin_url('edit.php?post_type=page&page=mindvalley-pagemash/pagemash.php&action=duplicate_post_save_as_new_page&post='.$page->ID.'&_nonce='.wp_create_nonce('duplicate_post_save_as_new_page')); ?>" title="<?php _e('Duplicate Page'); ?>" class="duplicate"><?php _e('Duplicate'); ?></a>]
 						<?php endif; ?>
 						[<a href="<?php echo get_permalink($page->ID);?>" target="_blank" title="<?php _e('View Page'); ?>" class="view"><?php _e('View'); ?></a>]
 					</span>
@@ -210,6 +217,169 @@ function pageMash_add_pages(){
 
 add_action('admin_menu', 'pageMash_add_pages'); //add admin menu under management tab
 add_filter('wp_list_pages_excludes', 'pageMash_add_excludes'); //add exclude pages to wp_list_pages funct
+
+
+
+/**
+ * Duplicate Post
+ * ==============
+ * Credits to Enrico Battocchi (http://www.lopo.it)
+ * http://www.lopo.it/duplicate-post-plugin/
+ */
+
+/*
+ * Duplicate for pages
+ */
+function pageMash_duplicate_post_save_as_new_page(){
+	if ( isset($_REQUEST['action']) && 'duplicate_post_save_as_new_page' == $_REQUEST['action']) {
+		if( empty($_REQUEST['post'])){
+			wp_die(__('No page to duplicate has been supplied!', 'pmash'));
+		}
+		$_nonce = (isset($_GET['_nonce']) ? $_GET['_nonce'] : $_POST['_nonce']);
+		if( !wp_verify_nonce($_nonce,'duplicate_post_save_as_new_page') ){
+			wp_die(__('Failed securiy check.', 'pmash'));
+		}
+		if(!current_user_can('edit_pages')){
+			wp_die(__('Failed securiy check.', 'pmash'));
+		}
+	}else{
+		return;
+	}
+	
+	// Get the original page
+	$id = (isset($_GET['post']) ? $_GET['post'] : $_POST['post']);
+	$post = pagemash_duplicate_post_get_page($id);
+
+	// Copy the page and insert it
+	if (isset($post) && $post!=null) {
+		$new_id = pageMash_duplicate_post_create_duplicate_from_page($post);
+
+		// If you have written a plugin which uses non-WP database tables to save
+		// information about a page you can hook this action to dupe that data.
+		do_action( 'pagemash_dp_duplicate_page', $new_id, $post );
+		
+		// Redirect to the edit screen for the new draft post
+		wp_redirect( admin_url( 'edit.php?post_type=page&page=mindvalley-pagemash/pagemash.php' ) );
+		exit;
+	} else {
+		echo __('Post creation failed, could not find original post.');
+	}
+}
+add_action('admin_init','pageMash_duplicate_post_save_as_new_page');
+
+
+/**
+ * Get a page from the database
+ */
+function pagemash_duplicate_post_get_page($id) {
+	global $wpdb;
+	$post = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE ID=$id");
+	if ($post->post_type == "revision"){
+		$id = $post->post_parent;
+		$post = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE ID=$id");
+	}
+	return $post[0];
+}
+
+
+/**
+ * Create a duplicate from a page
+ */
+function pageMash_duplicate_post_create_duplicate_from_page($post) {
+	global $wpdb;
+	//$new_post_type = 'page';
+	$new_post_author = pageMash_duplicate_post_get_current_user();
+	$new_post_date = (get_option('duplicate_post_copydate') == 1)?  $post->post_date : current_time('mysql');
+	$new_post_date_gmt = get_gmt_from_date($new_post_date);
+	$prefix = "Copy of ";
+
+	$new_post_type 	= $post->post_type;
+	$post_content    = str_replace("'", "''", $post->post_content);
+	$post_content_filtered = str_replace("'", "''", $post->post_content_filtered);
+	$post_excerpt    = str_replace("'", "''", $post->post_excerpt);
+	$post_title      = $prefix.str_replace("'", "''", $post->post_title);
+	$post_status     = str_replace("'", "''", $post->post_status);
+	$post_name       = str_replace("'", "''", $post->post_name);
+	$comment_status  = str_replace("'", "''", $post->comment_status);
+	$ping_status     = str_replace("'", "''", $post->ping_status);
+
+	// Insert the new template in the post table
+	$wpdb->query(
+			"INSERT INTO $wpdb->posts
+			(post_author, post_date, post_date_gmt, post_content, post_content_filtered, post_title, post_excerpt,  post_status, post_type, comment_status, ping_status, post_password, post_name, to_ping, pinged, post_modified, post_modified_gmt, post_parent, menu_order, post_mime_type)
+			VALUES
+			('$new_post_author->ID', '$new_post_date', '$new_post_date_gmt', '$post_content', '$post_content_filtered', '$post_title', '$post_excerpt', 'draft', '$new_post_type', '$comment_status', '$ping_status', '$post->post_password', '$post_name', '$post->to_ping', '$post->pinged', '$new_post_date', '$new_post_date_gmt', '$post->post_parent', '$post->menu_order', '$post->post_mime_type')");
+
+	$new_page_id = $wpdb->insert_id;
+
+	// Copy the taxonomies
+	pageMash_duplicate_post_copy_post_taxonomies($post->ID, $new_page_id, $post->post_type);
+
+	// Copy the meta information
+	pageMash_duplicate_post_copy_post_meta_info($post->ID, $new_page_id);
+
+	return $new_page_id;
+}
+
+
+
+/**
+ * Get the currently registered user
+ */
+function pageMash_duplicate_post_get_current_user() {
+	if (function_exists('wp_get_current_user')) {
+		return wp_get_current_user();
+	} else if (function_exists('get_currentuserinfo')) {
+		global $userdata;
+		get_currentuserinfo();
+		return $userdata;
+	} else {
+		$user_login = $_COOKIE[USER_COOKIE];
+		$current_user = $wpdb->get_results("SELECT * FROM $wpdb->users WHERE user_login='$user_login'");
+		return $current_user;
+	}
+}
+
+
+/**
+ * Copy the taxonomies of a post to another post
+ */
+function pageMash_duplicate_post_copy_post_taxonomies($id, $new_id, $post_type) {
+	global $wpdb;
+	if (isset($wpdb->terms)) {
+		// WordPress 2.3
+		$taxonomies = get_object_taxonomies($post_type); //array("category", "post_tag");
+		foreach ($taxonomies as $taxonomy) {
+			$post_terms = wp_get_object_terms($id, $taxonomy);
+			for ($i=0; $i<count($post_terms); $i++) {
+				wp_set_object_terms($new_id, $post_terms[$i]->slug, $taxonomy, true);
+			}
+		}
+	}
+}
+
+
+/**
+ * Copy the meta information of a post to another post
+ */
+function pageMash_duplicate_post_copy_post_meta_info($id, $new_id) {
+	global $wpdb;
+	$post_meta_infos = $wpdb->get_results("SELECT meta_key, meta_value FROM $wpdb->postmeta WHERE post_id=$id");
+
+	if (count($post_meta_infos)!=0) {
+		$sql_query = "INSERT INTO $wpdb->postmeta (post_id, meta_key, meta_value) ";
+		$meta_no_copy = explode(",",get_option('duplicate_post_blacklist'));
+		foreach ($post_meta_infos as $meta_info) {
+			$meta_key = $meta_info->meta_key;
+			$meta_value = addslashes($meta_info->meta_value);
+			if (!in_array($meta_key,$meta_no_copy)) {
+				$sql_query_sel[]= "SELECT $new_id, '$meta_key', '$meta_value'";
+			}
+		}
+		$sql_query.= implode(" UNION ALL ", $sql_query_sel);
+		$wpdb->query($sql_query);
+	}
+}
 
 
 ?>
