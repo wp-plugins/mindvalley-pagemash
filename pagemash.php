@@ -4,7 +4,7 @@ Plugin Name: Mindvalley Super pageMash
 Plugin URI: http://mindvalley.com/opensource
 Description: Manage your multitude of pages with pageMash's slick drag-and-drop style, ajax interface. Allows quick sorting, hiding and organising of parenting. Forked from original pageMash from Joel Starnes. (Formally called MindValley pageMash)
 Author: Mindvalley
-Version: 1.0.4
+Version: 1.1
 	
 */
 #########CONFIG OPTIONS############################################
@@ -68,8 +68,9 @@ function pageMash_getPages($post_parent){
 	//this is a recurrsive function which calls itself to produce a nested list of elements
 	//$post_parent should be 0 for root pages, or contain a pageID to return it's sub-pages
 	global $wpdb, $wp_version, $excludePagesFeature, $excludePagesList, $renamePagesFeature, $duplicatePagesFeature;
+	$post_type = !empty($_POST['post_type']) ? $_POST['post_type'] : (!empty($_GET['post_type']) ? $_GET['post_type'] : 'page');
 	if($wp_version >= 2.1){ //get pages from database
-		$pageposts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = 'page' AND post_parent = '$post_parent' AND post_status != 'auto-draft' ORDER BY menu_order");
+		$pageposts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_type = '$post_type' AND post_parent = '$post_parent' AND post_status != 'auto-draft' ORDER BY menu_order");
 	}else{
 		$pageposts = $wpdb->get_results("SELECT * FROM $wpdb->posts WHERE post_status = 'static' AND post_parent = '$post_parent' ORDER BY menu_order");
 	}
@@ -207,12 +208,23 @@ function pageMash_add_excludes($excludes){
 function pageMash_add_pages(){
 	//add menu link
 	global $minlevel, $wp_version;
-	if($wp_version >= 2.7){
+
+	if($wp_version >= 3){
+		$post_types = get_post_types(null,'objects');
+		foreach($post_types as $post_type => $pt){
+			
+			if($post_type == 'page' || ($pt->_builtin != 1 && $pt->hierarchical == 1)){
+				$page = add_submenu_page('edit.php?post_type='.$post_type, 'pageMash: Page Management', __('pageMash','pmash'), $minlevel,  __FILE__, 'pageMash_main'); 
+			}
+			
+		}
+	}elseif($wp_version >= 2.7){
 		$page = add_submenu_page('edit-pages.php', 'pageMash: Page Management', __('pageMash          ','pmash'), $minlevel,  __FILE__, 'pageMash_main'); 
 	}else{
 		$page = add_management_page('pageMash: Page Management', 'pageMash', $minlevel, __FILE__, 'pageMash_main');
 	}
-	add_action("admin_print_scripts-$page", 'pageMash_head'); //add css styles and JS code to head
+
+	add_action("admin_print_scripts", 'pageMash_head'); //add css styles and JS code to head
 }
 
 add_action('admin_menu', 'pageMash_add_pages'); //add admin menu under management tab
