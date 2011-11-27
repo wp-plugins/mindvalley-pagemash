@@ -4,18 +4,18 @@ Donate link: http://www.mindvalley.com/opensource
 Tags: pagemash, page, management
 Requires at least: 3.0.0
 Tested up to: 3.2.1
-Stable tag: 1.0.4
+Stable tag: 1.1.1
 
 A forked development of the infamous PageMash plugin.
 
 
 == Description ==
 
-If you love pageMash you will definitely love Super pageMash.
-
-All the goodies from the infamous pageMash (http://wordpress.org/extend/plugins/pagemash/) and much more !!!
-
 Customize and order your pages with absolute ease.
+
+All the goodies from the infamous pageMash (http://wordpress.org/extend/plugins/pagemash/) and much more!
+
+Supports custom post types with hierarchical = true
 
 
 == Installation ==
@@ -41,3 +41,7 @@ Initial version with enhancements:
 = 1.0.4 =
 
 * Page Duplicate
+
+= 1.1 =
+
+* Support for Custom Post Types
