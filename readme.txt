@@ -4,7 +4,7 @@ Donate link: http://www.mindvalley.com/opensource
 Tags: pagemash, page, management
 Requires at least: 3.0.0
 Tested up to: 3.2.1
-Stable tag: 1.1
+Stable tag: 1.1.1
 
 A forked development of the infamous PageMash plugin.
 
